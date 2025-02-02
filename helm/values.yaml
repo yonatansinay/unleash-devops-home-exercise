@@ -11,7 +11,7 @@ service:
   targetPort: 3000
 
 serviceAccount:
-  roleArn: arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+  roleArn: arn:aws:iam::039612870013:role/unleash-app-irsa-role
 
 env:
   BUCKET_NAME: "yonatan-bucket"

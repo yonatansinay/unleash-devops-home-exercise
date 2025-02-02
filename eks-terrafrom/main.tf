@@ -154,3 +154,89 @@ module "eks" {
     Project     = "unleash-devops"
   }
 }
+
+###############################################################################
+# DATA SOURCES
+###############################################################################
+
+# Retrieve the OIDC provider for your EKS cluster.
+# This assumes that your EKS module exports the OIDC provider ARN.
+# If your cluster does not have an OIDC provider, this data source will fail.
+data "aws_iam_openid_connect_provider" "oidc" {
+  # Replace with your OIDC provider ARN if not using the EKS module output.
+  arn = module.eks.oidc_provider_arn
+}
+
+###############################################################################
+# IAM POLICY
+###############################################################################
+
+# Create an IAM policy that grants read-only access to a specific S3 bucket.
+# This policy allows the actions "s3:GetObject" and "s3:ListBucket".
+resource "aws_iam_policy" "s3_policy" {
+  name        = "unleash-app-s3-policy"
+  description = "Policy granting read-only access to S3 bucket for the Unleash app"
+  policy      = jsonencode({
+    Version   = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = [
+          "s3:GetObject",
+          "s3:ListBucket"
+        ],
+        # Replace "my-s3-bucket" with the name of your bucket.
+        Resource = [
+          "arn:aws:s3:::my-s3-bucket",
+          "arn:aws:s3:::my-s3-bucket/*"
+        ]
+      }
+    ]
+  })
+}
+
+###############################################################################
+# IAM ROLE FOR IRSA
+###############################################################################
+
+# Create an IAM role that your Kubernetes ServiceAccount can assume.
+# This role will be used with IRSA (IAM Roles for Service Accounts).
+resource "aws_iam_role" "unleash_app_irsa_role" {
+  name = "unleash-app-irsa-role"
+
+  # The assume_role_policy defines who is allowed to assume this role.
+  # Here, we allow a federated principal (your EKS cluster's OIDC provider)
+  # to assume this role if the request comes from the specified Kubernetes
+  # ServiceAccount.
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect    = "Allow",
+        Principal = {
+          # Allow the OIDC provider (federated identity) to assume the role.
+          Federated = data.aws_iam_openid_connect_provider.oidc.arn
+        },
+        Action    = "sts:AssumeRoleWithWebIdentity",
+        Condition = {
+          StringEquals = {
+            # This condition ensures that only the specified ServiceAccount can assume
+            # the role. Replace "default" with your namespace if needed,
+            # and "unleash-app-sa" with your ServiceAccount name.
+            "${replace(data.aws_iam_openid_connect_provider.oidc.url, "https://", "")}:sub" = "system:serviceaccount:default:unleash-app-sa"
+          }
+        }
+      }
+    ]
+  })
+}
+
+###############################################################################
+# IAM ROLE POLICY ATTACHMENT
+###############################################################################
+
+# Attach the S3 read-only policy to the IAM role we just created.
+resource "aws_iam_role_policy_attachment" "attach_s3_policy" {
+  role       = aws_iam_role.unleash_app_irsa_role.name
+  policy_arn = aws_iam_policy.s3_policy.arn
+}
