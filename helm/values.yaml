@@ -17,7 +17,14 @@ env:
   BUCKET_NAME: "yonatan-bucket"
   PORT: "3000"
 
-resources: {}
+resources:
+  requests:
+    cpu: "250m"
+    memory: "256Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
 nodeSelector: {}
 tolerations: []
 affinity: {}

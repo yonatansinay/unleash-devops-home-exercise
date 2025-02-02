@@ -87,4 +87,4 @@ jobs:
     # 9. Deploy the Helm chart (this step will install or upgrade the release)
     - name: Helm Upgrade/Install
       run: |
-        helm upgrade --install unleash-devops charts/unleash --namespace Unleash --create-namespace
+        helm upgrade --install unleash-devops helm --namespace unleash --create-namespace
