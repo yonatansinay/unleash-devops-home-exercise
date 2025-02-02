@@ -55,7 +55,7 @@ jobs:
         context: .
         file: ./Dockerfile
         push: true
-        tags: your-docker-repo/unleash-devops-home-exercise:${{ env.VERSION }}
+        tags: ${{ vars.DOCKER_USERNAME }}/unleash-devops-home-exercise:${{ env.VERSION }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
