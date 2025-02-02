@@ -7,8 +7,12 @@ on:
 
 jobs:
   build:
-    # Use a Windows runner if you prefer, but Linux runners work perfectly too.
     runs-on: windows-latest
+
+    # Set your Docker Hub username as an environment variable here.
+    # This is now a plain variable instead of a secret.
+    env:
+      DOCKER_USERNAME: my-dockerhub-username
 
     steps:
     - name: Checkout Code
@@ -26,10 +30,13 @@ jobs:
       run: npm run build
 
     - name: Docker Build
-      run: docker build -t yonatansinay2020/my-devops-app:${{ github.sha }} .
+      run: docker build -t ${{ env.DOCKER_USERNAME }}/my-devops-app:${{ github.sha }} .
 
     - name: Log in to Docker Hub
-      run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+      env:
+        # DOCKER_PASSWORD is still stored as a secret.
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      run: echo $DOCKER_PASSWORD | docker login -u ${{ env.DOCKER_USERNAME }} --password-stdin
 
     - name: Push Docker Image
-      run: docker push yonatansinay2020/my-devops-app:${{ github.sha }}
+      run: docker push ${{ env.DOCKER_USERNAME }}/my-devops-app:${{ github.sha }}
