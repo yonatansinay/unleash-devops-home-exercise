@@ -82,7 +82,7 @@ jobs:
     # 8. Update kubeconfig so that kubectl/Helm can access the EKS cluster
     - name: Update kubeconfig
       run: |
-        aws eks update-kubeconfig --name my-eks-cluster --region ${{ vars.AWS_CLUSTER_REGION }}
+        aws eks update-kubeconfig --name ${{ vars.AWS_CLUSTER_NAME }} --region ${{ vars.AWS_CLUSTER_REGION }}
 
     # 9. Deploy the Helm chart (this step will install or upgrade the release)
     - name: Helm Upgrade/Install
