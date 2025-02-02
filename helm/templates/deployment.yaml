@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "unleash-devops-app.fullname" . }}
+  labels:
+    app: {{ include "unleash-devops-app.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "unleash-devops-app.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "unleash-devops-app.name" . }}
+    spec:
+      # Use the service account defined in values.yaml. If not set, defaults to a generated name.
+      serviceAccountName: {{ .Values.serviceAccount.name | default (include "unleash-devops-app.fullname" .) }}
+      containers:
+        - name: unleash-devops-home-exercise
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+          env:
+            - name: BUCKET_NAME
+              value: "{{ .Values.env.BUCKET_NAME }}"
+            - name: PORT
+              value: "{{ .Values.env.PORT }}"
+          resources:
+            {{- toYaml .Values.resources | nindent 10 }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 8 }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}

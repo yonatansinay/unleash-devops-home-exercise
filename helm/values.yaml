@@ -1,0 +1,23 @@
+replicaCount: 2
+
+image:
+  repository: "yonatansinay2020/unleash-devops-home-exercise" # Replace with your Docker repository
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 3000
+
+serviceAccount:
+  roleArn: arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+
+env:
+  BUCKET_NAME: "yonatan-bucket"
+  PORT: "3000"
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}

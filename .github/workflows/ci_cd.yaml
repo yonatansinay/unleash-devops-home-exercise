@@ -1,0 +1,84 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+    - main
+    tags:
+    - 'v*.*.*'
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    # 1. Checkout the repository
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    # 2. Setup Node.js (used for reading package.json if needed)
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    # 3. Determine the version to use:
+    #    If a Git tag is present, use that; otherwise, extract from package.json and add a "v" prefix if needed.
+    - name: Set Version
+      id: set_version
+      run: |
+        if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+        else
+          VERSION=$(node -p "require('./package.json').version")
+          if [[ $VERSION != v* ]]; then
+            VERSION="v${VERSION}"
+          fi
+        fi
+        echo "VERSION=${VERSION}" >> $GITHUB_ENV
+        echo "::set-output name=version::$VERSION"
+        echo "Determined version: $VERSION"
+
+    # 4. Log in to Docker registry (e.g., Docker Hub)
+    - name: Docker Login
+      uses: docker/login-action@v2
+      with:
+        username: ${{ vars.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    # 5. Build and push Docker image using the new version tag
+    - name: Build and Push Docker Image
+      uses: docker/build-push-action@v3
+      with:
+        context: .
+        push: true
+        tags: yonatansinay2020/unleash-devops-home-exercise:${{ env.VERSION }}
+
+    # 6. Update the Helm chart's values file with the new version.
+    #    This example assumes your Helm chart is located in the folder "charts/unleash"
+    #    and that the values file has an "image" section with a "tag" field.
+    - name: Update Helm Chart Values
+      run: |
+        echo "Updating helm chart with version $VERSION"
+        # Using sed to update the tag field in charts/unleash/values.yaml.
+        # This command looks for a line starting with optional spaces, followed by "tag:" and replaces it.
+        sed -i "s/^\(\s*tag:\s*\).*/\1\"${VERSION}\"/" charts/unleash/values.yaml
+        echo "Updated charts/unleash/values.yaml:"
+        cat charts/unleash/values.yaml
+
+    # 7. Configure AWS credentials for EKS access
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ vars.AWS_CLUSTER_REGION }}
+
+    # 8. Update kubeconfig so that kubectl/Helm can access the EKS cluster
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --name my-eks-cluster --region ${{ vars.AWS_CLUSTER_REGION }}
+
+    # 9. Deploy the Helm chart (this step will install or upgrade the release)
+    - name: Helm Upgrade/Install
+      run: |
+        helm upgrade --install unleash-devops charts/unleash --namespace Unleash --create-namespace
