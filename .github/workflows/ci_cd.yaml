@@ -45,7 +45,10 @@ jobs:
         username: ${{ vars.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    # 5. Build and Push Docker Image with caching enabled.
+    # Set up Docker Buildx with a cache-friendly driver
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
     - name: Build and Push Docker Image
       uses: docker/build-push-action@v3
       with:
@@ -53,7 +56,6 @@ jobs:
         file: ./Dockerfile
         push: true
         tags: your-docker-repo/unleash-devops-home-exercise:${{ env.VERSION }}
-        # Use GitHub Actions cache to speed up builds:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
