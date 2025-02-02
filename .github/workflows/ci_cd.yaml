@@ -52,6 +52,8 @@ jobs:
         context: .
         push: true
         tags: yonatansinay2020/unleash-devops-home-exercise:${{ env.VERSION }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
     # 6. Update the Helm chart's values file with the new version.
     #    This example assumes your Helm chart is located in the folder "charts/unleash"
@@ -59,11 +61,11 @@ jobs:
     - name: Update Helm Chart Values
       run: |
         echo "Updating helm chart with version $VERSION"
-        # Using sed to update the tag field in /helm/vaulues.yaml.
+        # Using sed to update the tag field in ./helm/vaulues.yaml.
         # This command looks for a line starting with optional spaces, followed by "tag:" and replaces it.
-        sed -i "s/^\(\s*tag:\s*\).*/\1\"${VERSION}\"/" /helm/vaulues.yaml
-        echo "Updated /helm/vaulues.yaml:"
-        cat /helm/vaulues.yaml
+        sed -i "s/^\(\s*tag:\s*\).*/\1\"${VERSION}\"/" ./helm/vaulues.yaml
+        echo "Updated ./helm/vaulues.yaml:"
+        cat ./helm/vaulues.yaml
 
     # 7. Configure AWS credentials for EKS access
     - name: Configure AWS Credentials
