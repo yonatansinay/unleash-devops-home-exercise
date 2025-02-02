@@ -220,10 +220,7 @@ resource "aws_iam_role" "unleash_app_irsa_role" {
         Action    = "sts:AssumeRoleWithWebIdentity",
         Condition = {
           StringEquals = {
-            # This condition ensures that only the specified ServiceAccount can assume
-            # the role. Replace "default" with your namespace if needed,
-            # and "unleash-app-sa" with your ServiceAccount name.
-            "${replace(data.aws_iam_openid_connect_provider.oidc.url, "https://", "")}:sub" = "system:serviceaccount:default:unleash-app-sa"
+            "${var.oidc_provider_url}:sub" = "system:serviceaccount:unleash:unleash-devops-unleash-devops-app"
           }
         }
       }

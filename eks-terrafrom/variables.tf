@@ -21,3 +21,9 @@ variable "desired_capacity" {
   default     = 2
   description = "Desired number of worker nodes in the managed node group."
 }
+
+variable "oidc_provider_url" {
+  description = "The OIDC provider URL for the EKS cluster (without https://)"
+  type        = string
+  default     = "oidc.eks.us-west-2.amazonaws.com/id/CCB517C8BAF676E10D2ABF863FDB228E"
+}
