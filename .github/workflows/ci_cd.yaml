@@ -45,13 +45,15 @@ jobs:
         username: ${{ vars.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    # 5. Build and push Docker image using the new version tag
+    # 5. Build and Push Docker Image with caching enabled.
     - name: Build and Push Docker Image
       uses: docker/build-push-action@v3
       with:
         context: .
+        file: ./Dockerfile
         push: true
-        tags: yonatansinay2020/unleash-devops-home-exercise:${{ env.VERSION }}
+        tags: your-docker-repo/unleash-devops-home-exercise:${{ env.VERSION }}
+        # Use GitHub Actions cache to speed up builds:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
