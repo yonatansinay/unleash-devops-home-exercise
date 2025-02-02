@@ -25,7 +25,7 @@ jobs:
       run: npm run build
 
     - name: Docker Build
-      run: docker build -t ${{ vars.DOCKER_USERNAME }}/my-devops-app:${{ github.sha }} .
+      run: docker build -t ${{ vars.DOCKER_USERNAME }}/unleash-s3-app:${{ github.sha }} .
 
     - name: Log in to Docker Hub
       env:
@@ -34,4 +34,4 @@ jobs:
       run: echo $DOCKER_PASSWORD | docker login -u ${{ vars.DOCKER_USERNAME }} --password-stdin
 
     - name: Push Docker Image
-      run: docker push ${{ vars.DOCKER_USERNAME }}/my-devops-app:${{ github.sha }}
+      run: docker push ${{ vars.DOCKER_USERNAME }}/unleash-s3-app:${{ github.sha }}
