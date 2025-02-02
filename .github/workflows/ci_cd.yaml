@@ -59,11 +59,11 @@ jobs:
     - name: Update Helm Chart Values
       run: |
         echo "Updating helm chart with version $VERSION"
-        # Using sed to update the tag field in charts/unleash/values.yaml.
+        # Using sed to update the tag field in helm/vaulues.yaml.
         # This command looks for a line starting with optional spaces, followed by "tag:" and replaces it.
-        sed -i "s/^\(\s*tag:\s*\).*/\1\"${VERSION}\"/" charts/unleash/values.yaml
-        echo "Updated charts/unleash/values.yaml:"
-        cat charts/unleash/values.yaml
+        sed -i "s/^\(\s*tag:\s*\).*/\1\"${VERSION}\"/" helm/vaulues.yaml
+        echo "Updated helm/vaulues.yaml:"
+        cat helm/vaulues.yaml
 
     # 7. Configure AWS credentials for EKS access
     - name: Configure AWS Credentials
